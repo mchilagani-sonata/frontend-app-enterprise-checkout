@@ -18,6 +18,11 @@ async function planDetailsLoader(): Promise<Response | null> {
   return null;
 }
 
+async function AcademicDetailsLoader(): Promise<Response | null> {
+  // Plan Details page doesn't require authentication
+  return null;
+}
+
 /**
  * Route loader for Plan Details Login page.
  *
@@ -27,7 +32,7 @@ async function planDetailsLoginLoader(): Promise<Response | null> {
   const authenticatedUser = getAuthenticatedUser();
   if (authenticatedUser) {
     // If the user is already authenticated, redirect to PlanDetails Page.
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicDetails);
   }
   return null;
 }
@@ -41,7 +46,7 @@ async function planDetailsRegisterLoader(): Promise<Response | null> {
   const authenticatedUser = getAuthenticatedUser();
   if (authenticatedUser) {
     // If the user is already authenticated, redirect to PlanDetails Page.
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicDetails);
   }
   return null;
 }
@@ -56,7 +61,7 @@ async function accountDetailsLoader(queryClient: QueryClient): Promise<Response 
   const authenticatedUser = getAuthenticatedUser();
   if (!authenticatedUser) {
     // If the user is NOT authenticated, redirect to PlanDetails Page.
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicDetails);
   }
 
   const contextMetadata: CheckoutContextResponse = await queryClient.ensureQueryData(
@@ -66,7 +71,7 @@ async function accountDetailsLoader(queryClient: QueryClient): Promise<Response 
 
   const stripePriceId = extractPriceId(pricing);
   if (!stripePriceId) {
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicDetails);
   }
 
   const {
@@ -94,7 +99,7 @@ async function billingDetailsLoader(queryClient: QueryClient): Promise<Response 
   const authenticatedUser = getAuthenticatedUser();
   if (!authenticatedUser) {
     // If the user is NOT authenticated, redirect to PlanDetails Page.
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicDetails);
   }
 
   const contextMetadata: CheckoutContextResponse = await queryClient.ensureQueryData(
@@ -104,7 +109,7 @@ async function billingDetailsLoader(queryClient: QueryClient): Promise<Response 
 
   const stripePriceId = extractPriceId(pricing);
   if (!stripePriceId) {
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicDetails);
   }
 
   const {
@@ -121,7 +126,7 @@ async function billingDetailsLoader(queryClient: QueryClient): Promise<Response 
 
   // TODO: check state for a stored checkout session ID.  If it does NOT exist, redirect:
   if (!getCheckoutSessionClientSecret()) {
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicDetails);
   }
 
   return null;
@@ -138,7 +143,7 @@ async function billingDetailsSuccessLoader(queryClient: QueryClient): Promise<Re
   const authenticatedUser = getAuthenticatedUser();
   if (!authenticatedUser) {
     // If the user is NOT authenticated, redirect to PlanDetails Page.
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicDetails);
   }
 
   const contextMetadata: CheckoutContextResponse = await queryClient.ensureQueryData(
@@ -150,7 +155,7 @@ async function billingDetailsSuccessLoader(queryClient: QueryClient): Promise<Re
   const checkoutIntentType = checkoutFormStore.getState().checkoutSessionStatus?.type;
 
   if (checkoutIntentType !== 'complete' && !checkoutIntent?.existingSuccessfulCheckoutIntent) {
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicDetails);
   }
 
   return null;
@@ -160,10 +165,11 @@ async function billingDetailsSuccessLoader(queryClient: QueryClient): Promise<Re
  * Page-specific route loaders mapped by checkout page
  */
 const PAGE_LOADERS: Record<CheckoutPage, (queryClient: QueryClient) => Promise<Response | null>> = {
+  AccountDetails: accountDetailsLoader,
+  AcademicDetails: AcademicDetailsLoader,
   PlanDetails: planDetailsLoader,
   PlanDetailsLogin: planDetailsLoginLoader,
   PlanDetailsRegister: planDetailsRegisterLoader,
-  AccountDetails: accountDetailsLoader,
   BillingDetails: billingDetailsLoader,
   BillingDetailsSuccess: billingDetailsSuccessLoader,
 };
@@ -181,7 +187,8 @@ const PAGE_LOADERS: Record<CheckoutPage, (queryClient: QueryClient) => Promise<R
 const makeCheckoutStepperLoader: MakeRouteLoaderFunctionWithQueryClient = function makeRootLoader(queryClient) {
   return async function checkoutStepperLoader({ params = {} }) {
     const { currentStep, currentSubstep } = getStepFromParams(params);
-    const pageDetails = getCheckoutPageDetails({ step: currentStep, substep: currentSubstep });
+    const resolvedStep = currentStep ?? 'AcademicDetails';
+    const pageDetails = getCheckoutPageDetails({ step: resolvedStep, substep: currentSubstep });
     if (!pageDetails) {
       // Invalid route, do nothing. 404 page should kick in automatically.
       return null;

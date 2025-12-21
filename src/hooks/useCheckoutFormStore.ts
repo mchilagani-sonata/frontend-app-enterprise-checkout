@@ -13,6 +13,7 @@ export const useCheckoutFormStore = create<FormStore>(
   (set) => ({
     /** Container for form values keyed by step. */
     formData: {
+      [DataStoreKey.AcademicDetails]: {},
       [DataStoreKey.PlanDetails]: {},
       [DataStoreKey.AccountDetails]: {},
       [DataStoreKey.BillingDetails]: {},

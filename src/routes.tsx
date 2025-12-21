@@ -13,6 +13,8 @@ import CheckoutPage from '@/components/checkout-page/CheckoutPage';
 import { authenticatedSteps, CheckoutStepKey } from '@/constants/checkout';
 
 import { ErrorPage } from './components/ErrorPage';
+import AcademicDetails from './components/Stepper/Steps/AcademicDetails';
+
 
 /**
  * Returns the route loader function if a queryClient is available; otherwise, returns null.
@@ -41,14 +43,10 @@ const StepWrapper = () => {
 function getCheckoutRoutes(queryClient: QueryClient) {
   const checkoutChildRoutes: RouteObject[] = [
     {
-      path: '/:step?',
-      loader: getRouteLoader(makeCheckoutStepperLoader, queryClient),
-      element: (
-        <PageWrap>
-          <StepWrapper />
-        </PageWrap>
-      ),
+      index: true,
+      element: <Navigate to={CheckoutStepKey.AcademicDetails} replace />,
     },
+
     {
       path: '/:step/:substep',
       loader: getRouteLoader(makeCheckoutStepperLoader, queryClient),
@@ -58,9 +56,15 @@ function getCheckoutRoutes(queryClient: QueryClient) {
         </PageWrap>
       ),
     },
+
     {
-      index: true,
-      element: <Navigate to={CheckoutStepKey.PlanDetails} replace />,
+      path: '/:step',
+      loader: getRouteLoader(makeCheckoutStepperLoader, queryClient),
+      element: (
+        <PageWrap>
+          <StepWrapper />
+        </PageWrap>
+      ),
     },
   ];
   const checkoutRoutes: RouteObject[] = [
@@ -125,6 +129,6 @@ export function getRoutes(queryClient: QueryClient) {
 
   return {
     routes,
-    rootChildRoutes,
+    rootChildRoutes: [], // Not used - kept for backward compatibility
   };
 }

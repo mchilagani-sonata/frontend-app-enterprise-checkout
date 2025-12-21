@@ -8,10 +8,10 @@ const StepperTitle = () => {
     title: pageTitle,
   } = useCurrentPageDetails();
   const intl = useIntl();
-  const { fullName } = useCheckoutFormStore((state) => state.formData[DataStoreKey.PlanDetails]);
+  const { fullName } = useCheckoutFormStore((state) => state.formData[DataStoreKey.AcademicDetails]);
   return (
     <h1 className="text-center p-3 mb-4" data-testid="stepper-title">
-      {intl.formatMessage(pageTitle, { firstName: fullName })}
+      {/* {intl.formatMessage(pageTitle, { firstName: fullName })} */}
     </h1>
   );
 };

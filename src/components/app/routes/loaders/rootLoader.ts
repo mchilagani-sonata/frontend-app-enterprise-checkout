@@ -94,7 +94,7 @@ const makeRootLoader: MakeRouteLoaderFunctionWithQueryClient = function makeRoot
 
     // Expired intent → Plan Details
     if (expiredCheckoutIntent) {
-      return redirectOrNull(CheckoutPageRoute.PlanDetails);
+      return redirectOrNull(CheckoutPageRoute.BillingDetails);
     }
     return null;
   };

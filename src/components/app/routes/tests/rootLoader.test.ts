@@ -62,14 +62,14 @@ describe('makeRootLoader (rootLoader) tests', () => {
     expect(result).not.toBeNull();
     const res = result as any;
     expect(res.status).toBe(302);
-    expect(res.headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+    expect(res.headers.get('Location')).toBe(CheckoutPageRoute.AcademicDetails);
   });
 
   it('does not self-redirect unauthenticated users already on Plan Details', async () => {
     (authMod.getAuthenticatedUser as jest.Mock).mockReturnValue(null);
 
     const loader = makeRootLoader(queryClient);
-    const result = await loader({ request: makeRequest(CheckoutPageRoute.PlanDetails) } as any);
+    const result = await loader({ request: makeRequest(CheckoutPageRoute.AcademicDetails) } as any);
 
     expect(result).toBeNull();
   });
@@ -84,7 +84,7 @@ describe('makeRootLoader (rootLoader) tests', () => {
     ensureSpy.mockResolvedValue({ checkoutIntent: { state: 'paid' } } as any);
 
     const loader = makeRootLoader(queryClient);
-    const result = await loader({ request: makeRequest(CheckoutPageRoute.PlanDetails) } as any);
+    const result = await loader({ request: makeRequest(CheckoutPageRoute.AcademicDetails) } as any);
 
     expect(utilsMod.populateInitialApplicationState).toHaveBeenCalledWith({
       checkoutIntent: { state: 'paid' },
@@ -134,7 +134,7 @@ describe('makeRootLoader (rootLoader) tests', () => {
     expect(result).not.toBeNull();
     const res = result as any;
     expect(res.status).toBe(302);
-    expect(res.headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+    expect(res.headers.get('Location')).toBe(CheckoutPageRoute.AcademicDetails);
   });
 
   it('returns null when authenticated and no successful/expired intent (in-progress), but still populates form fields', async () => {

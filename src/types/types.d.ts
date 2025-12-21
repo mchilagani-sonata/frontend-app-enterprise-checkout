@@ -63,11 +63,18 @@ declare global {
    * ==============================
    */
 
-  type CheckoutStep = 'PlanDetails' | 'AccountDetails' | 'BillingDetails';
+  type CheckoutStep = 'AcademicDetails' | 'PlanDetails' | 'AccountDetails' | 'BillingDetails';
 
   type CheckoutSubstep = 'Login' | 'Register' | 'Success';
 
-  type CheckoutPage = 'PlanDetails' | 'PlanDetailsLogin' | 'PlanDetailsRegister' | 'AccountDetails' | 'BillingDetails' | 'BillingDetailsSuccess';
+  type CheckoutPage =
+  | 'AcademicDetails'
+  | 'AccountDetails'
+  | 'PlanDetails'
+  | 'PlanDetailsLogin'
+  | 'PlanDetailsRegister'
+  | 'BillingDetails'
+  | 'BillingDetailsSuccess';
 
   export type CheckoutPageRouteValue = (typeof CheckoutPageRoute)[keyof typeof CheckoutPageRoute];
 
@@ -88,6 +95,7 @@ declare global {
   /**
    * Form data types derived from Zod schemas
    */
+  type AcademicDetailsData = z.infer<typeof AcademicDetailsSchema>;
   type PlanDetailsData = z.infer<typeof PlanDetailsSchema>;
   type PlanDetailsLoginPageData = z.infer<typeof PlanDetailsLoginPageSchema>;
   type PlanDetailsRegisterPageData = z.infer<typeof PlanDetailsRegisterPageSchema>;
@@ -98,6 +106,7 @@ declare global {
    * Maps step names to their corresponding data types
    */
   interface StepDataMap {
+    'AcademicDetails': Partial<AcademicDetailsData>;
     'PlanDetails': Partial<PlanDetailsData>;
     'AccountDetails': Partial<AccountDetailsData>;
     'BillingDetails': Partial<BillingDetailsData>;

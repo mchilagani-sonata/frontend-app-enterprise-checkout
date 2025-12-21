@@ -6,6 +6,7 @@ import { validateFieldDetailed } from '@/components/app/data/services/validation
 import { serverValidationError } from '@/utils/common';
 
 export enum CheckoutStepKey {
+  AcademicDetails = 'academic-details',
   PlanDetails = 'plan-details',
   AccountDetails = 'account-details',
   BillingDetails = 'billing-details',
@@ -116,6 +117,10 @@ export const PlanDetailsRegisterPageSchema = (constraints: CheckoutContextFieldC
     });
   }
 }));
+
+// export const AcademicDetailsSchema = z.object({
+
+// });
 
 export const PlanDetailsSchema = (
   constraints: CheckoutContextFieldConstraints,
@@ -231,7 +236,17 @@ export const BillingDetailsSchema = (constraints: CheckoutContextFieldConstraint
   })
 );
 
+// export const CheckoutSubstepKeys={
+// 	Login: “AcadimicDetails”
+// }
+
+// Simple empty schema - no validation needed for coming soon page
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const AcademicSelectionSchema = (constraints: CheckoutContextFieldConstraints) => (z.object({}));
+
 export const CheckoutPageRoute = {
+  AcademicDetails: `/${CheckoutStepKey.AcademicDetails}`,
   PlanDetails: `/${CheckoutStepKey.PlanDetails}`,
   PlanDetailsLogin: `/${CheckoutStepKey.PlanDetails}/${CheckoutSubstepKey.Login}`,
   PlanDetailsRegister: `/${CheckoutStepKey.PlanDetails}/${CheckoutSubstepKey.Register}`,
@@ -241,6 +256,44 @@ export const CheckoutPageRoute = {
 } as const;
 
 export const CheckoutPageDetails: { [K in CheckoutPage]: CheckoutPageDetails } = {
+  AcademicDetails: {
+    step: 'AcademicDetails',
+    substep: undefined,
+    formSchema: AcademicSelectionSchema,
+    // route: EssentialsStepKey.AcademicSelection,
+    title: defineMessages({
+      id: 'essentials.academicSelection.title',
+      defaultMessage: 'Academic Selection',
+      description: 'Title for the academic selection page',
+    }),
+    buttonMessage: defineMessages({
+      id: 'checkout.academicDetails.continue',
+      defaultMessage: 'Continue',
+      description: 'Button label for the next step in the academic details step',
+    }),
+  },
+
+//   // NEW ROUTES - Essentials flow
+// export const EssentialsPageRoute = {
+//   AcademicSelection: `/essentials/${EssentialsStepKey.AcademicSelection}`,
+// } as const
+
+// // NEW PAGE DETAILS - Essentials flow
+// export const EssentialsPageDetails = {
+//   AcademicSelection: {
+//     step: 'AcademicSelection',
+//     substep: undefined,
+//     formSchema: AcademicSelectionSchema,
+//     route: EssentialsPageRoute.AcademicSelection,
+//     title: defineMessages({
+//       id: 'essentials.academicSelection.title',
+//       defaultMessage: 'Academic Selection',
+//       description: 'Title for the academic selection page',
+//     }),
+//     buttonMessage: null,
+//   },
+// } as const;
+
   PlanDetails: {
     step: 'PlanDetails',
     substep: undefined,
@@ -337,17 +390,21 @@ export const CheckoutPageDetails: { [K in CheckoutPage]: CheckoutPageDetails } =
 
 // Constants specific to the Stepper component
 export const authenticatedSteps = [
+  'academic-details',
+  'plan-details',
   'account-details',
   'billing-details',
 ] as const;
 
 export enum DataStoreKey {
+  AcademicDetails = 'AcademicDetails',
   PlanDetails = 'PlanDetails',
   AccountDetails = 'AccountDetails',
   BillingDetails = 'BillingDetails',
 }
 
 export enum SubmitCallbacks {
+  AcademicDetails = 'AcademicDetails',
   PlanDetails = 'PlanDetails',
   PlanDetailsLogin = 'PlanDetailsLogin',
   PlanDetailsRegister = 'PlanDetailsRegister',

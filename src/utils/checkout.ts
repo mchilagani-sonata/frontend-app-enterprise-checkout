@@ -19,8 +19,16 @@ function getStepFromParams(params) {
     step?: CheckoutStepKey,
     substep?: CheckoutSubstepKey,
   } = params;
-  const currentStep = currentStepKey ? CheckoutStepByKey[currentStepKey] : undefined;
-  const currentSubstep = currentSubstepKey ? CheckoutSubstepByKey[currentSubstepKey] : undefined;
+
+  if (!currentStepKey) {
+    currentStepKey = CheckoutStepKey.AcademicDetails;
+  }
+
+  const currentStep = CheckoutStepByKey[currentStepKey];
+  const currentSubstep = currentSubstepKey
+    ? CheckoutSubstepByKey[currentSubstepKey]
+    : undefined;
+
   return {
     currentStep,
     currentStepKey,
