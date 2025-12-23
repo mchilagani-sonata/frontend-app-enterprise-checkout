@@ -6,6 +6,7 @@ import { validateFieldDetailed } from '@/components/app/data/services/validation
 import { serverValidationError } from '@/utils/common';
 
 export enum CheckoutStepKey {
+  AcademicSelection = 'academic-selection',
   PlanDetails = 'plan-details',
   AccountDetails = 'account-details',
   BillingDetails = 'billing-details',
@@ -15,6 +16,11 @@ export enum CheckoutSubstepKey {
   Login = 'login',
   Register = 'register',
   Success = 'success',
+}
+
+// NEW ENUMS - For Essentials/Academic flow
+export enum EssentialsStepKey {
+  AcademicSelection = 'academic-selection',
 }
 
 function reverseEnum<E extends Record<string, string>>(enumObj: E): Record<E[keyof E], keyof E> {
@@ -117,6 +123,10 @@ export const PlanDetailsRegisterPageSchema = (constraints: CheckoutContextFieldC
   }
 }));
 
+// export const AcademicDetailsSchema = z.object({
+
+// });
+
 export const PlanDetailsSchema = (
   constraints: CheckoutContextFieldConstraints,
   stripePriceId: CheckoutContextPrice['id'],
@@ -128,7 +138,7 @@ export const PlanDetailsSchema = (
     )
     .min(
       constraints?.quantity?.min ?? 5,
-      `Must be at least ${constraints?.quantity?.min ?? 5} licenses`,
+      `Minimum ${constraints?.quantity?.min ?? 5} users`,
     )
     .max(
       constraints?.quantity?.max ?? 50,
@@ -157,10 +167,7 @@ export const PlanDetailsSchema = (
       `Name is too long. It must contain no more than ${constraints?.fullName?.maxLength ?? 150} characters.`,
     ),
   adminEmail: z.string().trim()
-    .min(
-      1,
-      'Work email is required',
-    )
+    .email()
     .min(
       constraints?.adminEmail?.minLength ?? 6,
       'Please enter valid email (too short)',
@@ -173,7 +180,6 @@ export const PlanDetailsSchema = (
       new RegExp(constraints?.adminEmail?.pattern ?? '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$'),
       'Please enter valid email',
     )
-    .email()
     .superRefine(async (adminEmail, ctx) => {
       // TODO: Nice to have to avoid calling this API if client side validation catches first
       const { isValid, validationDecisions } = await validateFieldDetailed(
@@ -239,16 +245,63 @@ export const BillingDetailsSchema = (constraints: CheckoutContextFieldConstraint
   })
 );
 
+// export const CheckoutSubstepKeys={
+// 	Login: “AcadimicDetails”
+// }
+
+// Simple empty schema - no validation needed for coming soon page
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const AcademicSelectionSchema = (constraints: CheckoutContextFieldConstraints) => (z.object({}));
+
 export const CheckoutPageRoute = {
-  PlanDetails: `/${CheckoutStepKey.PlanDetails}`,
-  PlanDetailsLogin: `/${CheckoutStepKey.PlanDetails}/${CheckoutSubstepKey.Login}`,
-  PlanDetailsRegister: `/${CheckoutStepKey.PlanDetails}/${CheckoutSubstepKey.Register}`,
-  AccountDetails: `/${CheckoutStepKey.AccountDetails}`,
-  BillingDetails: `/${CheckoutStepKey.BillingDetails}`,
-  BillingDetailsSuccess: `/${CheckoutStepKey.BillingDetails}/${CheckoutSubstepKey.Success}`,
+  AcademicSelection: `/essentials/${CheckoutStepKey.AcademicSelection}`,
+  PlanDetails: `/essentials/${CheckoutStepKey.PlanDetails}`,
+  PlanDetailsLogin: `/essentials/${CheckoutStepKey.PlanDetails}/${CheckoutSubstepKey.Login}`,
+  PlanDetailsRegister: `/essentials/${CheckoutStepKey.PlanDetails}/${CheckoutSubstepKey.Register}`,
+  AccountDetails: `/essentials/${CheckoutStepKey.AccountDetails}`,
+  BillingDetails: `/essentials/${CheckoutStepKey.BillingDetails}`,
+  BillingDetailsSuccess: `/essentials/${CheckoutStepKey.BillingDetails}/${CheckoutSubstepKey.Success}`,
+} as const;
+
+// NEW ROUTES - Essentials flow
+export const EssentialsPageRoute = {
+  AcademicSelection: `/essentials/${EssentialsStepKey.AcademicSelection}`,
+} as const;
+
+// NEW PAGE DETAILS - Essentials flow
+export const EssentialsPageDetails = {
+  AcademicSelection: {
+    step: 'AcademicSelection',
+    substep: undefined,
+    formSchema: AcademicSelectionSchema,
+    route: EssentialsPageRoute.AcademicSelection,
+    title: defineMessages({
+      id: 'essentials.academicSelection.title',
+      defaultMessage: 'Academic Selection',
+      description: 'Title for the academic selection page',
+    }),
+    buttonMessage: null,
+  },
 } as const;
 
 export const CheckoutPageDetails: { [K in CheckoutPage]: CheckoutPageDetails } = {
+  AcademicSelection: {
+    step: 'AcademicSelection',
+    substep: undefined,
+    formSchema: AcademicSelectionSchema,
+    // route: EssentialsStepKey.AcademicSelection,
+    title: defineMessages({
+      id: 'essentials.academicSelection.title',
+      defaultMessage: 'Academic Selection',
+      description: 'Title for the academic selection page',
+    }),
+    buttonMessage: defineMessages({
+      id: 'checkout.AcademicSelection.continue',
+      defaultMessage: 'Continue',
+      description: 'Button label for the next step in the academic Selection step',
+    }),
+  },
   PlanDetails: {
     step: 'PlanDetails',
     substep: undefined,
@@ -345,17 +398,21 @@ export const CheckoutPageDetails: { [K in CheckoutPage]: CheckoutPageDetails } =
 
 // Constants specific to the Stepper component
 export const authenticatedSteps = [
+  'academic-selection',
+  'plan-details',
   'account-details',
   'billing-details',
 ] as const;
 
 export enum DataStoreKey {
+  AcademicSelection = 'AcademicSelection',
   PlanDetails = 'PlanDetails',
   AccountDetails = 'AccountDetails',
   BillingDetails = 'BillingDetails',
 }
 
 export enum SubmitCallbacks {
+  AcademicSelection = 'AcademicSelection',
   PlanDetails = 'PlanDetails',
   PlanDetailsLogin = 'PlanDetailsLogin',
   PlanDetailsRegister = 'PlanDetailsRegister',

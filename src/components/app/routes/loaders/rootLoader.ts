@@ -57,7 +57,14 @@ const makeRootLoader: MakeRouteLoaderFunctionWithQueryClient = function makeRoot
         sessionStorage.setItem(SSP_SESSION_KEY, FEATURE_SELF_SERVICE_PURCHASING_KEY);
       }
     }
+    const currentPath = new URL(request.url).pathname;
 
+    const isCheckoutRoute = !currentPath.startsWith('/essentials');
+
+    if (!isCheckoutRoute) {
+      // we skip checkout-specific behavior
+      return null;
+    }
     // Fetch basic info about authenticated user from JWT token, and also hydrate it with additional
     // information from the `<LMS>/api/user/v1/accounts/<username>` endpoint. We need access to the
     // logged-in user's country if they are pre-registered.
@@ -68,7 +75,7 @@ const makeRootLoader: MakeRouteLoaderFunctionWithQueryClient = function makeRoot
     const contextMetadata: CheckoutContextResponse = await queryClient.ensureQueryData(
       queryBffContext(authenticatedUser?.userId || null),
     );
-    const currentPath = new URL(request.url).pathname;
+    // const currentPath = new URL(request.url).pathname;
 
     // Helper to avoid self-redirect loops
     /**
@@ -87,7 +94,7 @@ const makeRootLoader: MakeRouteLoaderFunctionWithQueryClient = function makeRoot
 
     // Unauthenticated user on protected paths → redirect to Plan Details
     if (!authenticatedUser && protectedPaths.has(currentPath)) {
-      return redirectOrNull(CheckoutPageRoute.PlanDetails);
+      return redirectOrNull(CheckoutPageRoute.AcademicSelection);
     }
 
     const { checkoutIntent, pricing } = contextMetadata;
@@ -116,7 +123,7 @@ const makeRootLoader: MakeRouteLoaderFunctionWithQueryClient = function makeRoot
 
     // Expired intent → Plan Details
     if (expiredCheckoutIntent) {
-      return redirectOrNull(CheckoutPageRoute.PlanDetails);
+      return redirectOrNull(CheckoutPageRoute.AcademicSelection);
     }
     return null;
   };

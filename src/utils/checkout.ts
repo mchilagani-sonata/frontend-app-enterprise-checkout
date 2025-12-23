@@ -13,14 +13,23 @@ import {
  */
 function getStepFromParams(params) {
   const {
-    step: currentStepKey,
-    substep: currentSubstepKey,
+    step,
+    substep,
   }: {
     step?: CheckoutStepKey,
     substep?: CheckoutSubstepKey,
   } = params;
-  const currentStep = currentStepKey ? CheckoutStepByKey[currentStepKey] : undefined;
-  const currentSubstep = currentSubstepKey ? CheckoutSubstepByKey[currentSubstepKey] : undefined;
+
+  const currentStepKey: CheckoutStepKey =
+    step ?? CheckoutStepKey.AcademicSelection;
+
+  const currentSubstepKey = substep;
+
+  const currentStep = CheckoutStepByKey[currentStepKey];
+  const currentSubstep = currentSubstepKey
+    ? CheckoutSubstepByKey[currentSubstepKey]
+    : undefined;
+
   return {
     currentStep,
     currentStepKey,

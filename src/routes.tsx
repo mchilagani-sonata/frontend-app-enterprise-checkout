@@ -10,10 +10,12 @@ import AppShell from '@/components/app/routes/AppShell';
 import { makeCheckoutStepperLoader, makeRootLoader } from '@/components/app/routes/loaders';
 import RouterFallback from '@/components/app/routes/RouterFallback';
 import CheckoutPage from '@/components/checkout-page/CheckoutPage';
-import { authenticatedSteps, CheckoutStepKey } from '@/constants/checkout';
+import { authenticatedSteps, CheckoutStepKey,EssentialsStepKey} from '@/constants/checkout';
 
 import { ErrorPage } from './components/ErrorPage';
-
+import AcademicSelection from './components/Stepper/Steps/AcademicSelection';
+// import AcademicSelection from '@/components/essentials-page/AcademicSelection';
+// import { authenticatedSteps, CheckoutStepKey, EssentialsStepKey } from '@/constants/checkout';
 /**
  * Returns the route loader function if a queryClient is available; otherwise, returns null.
  */
@@ -41,14 +43,10 @@ const StepWrapper = () => {
 function getCheckoutRoutes(queryClient: QueryClient) {
   const checkoutChildRoutes: RouteObject[] = [
     {
-      path: '/:step?',
-      loader: getRouteLoader(makeCheckoutStepperLoader, queryClient),
-      element: (
-        <PageWrap>
-          <StepWrapper />
-        </PageWrap>
-      ),
+      index: true,
+      element: <Navigate to={CheckoutStepKey.AcademicSelection} replace />,
     },
+
     {
       path: '/:step/:substep',
       loader: getRouteLoader(makeCheckoutStepperLoader, queryClient),
@@ -58,9 +56,19 @@ function getCheckoutRoutes(queryClient: QueryClient) {
         </PageWrap>
       ),
     },
+
+    {
+      path: '/:step',
+      loader: getRouteLoader(makeCheckoutStepperLoader, queryClient),
+      element: (
+        <PageWrap>
+          <StepWrapper />
+        </PageWrap>
+      ),
+    },
     {
       index: true,
-      element: <Navigate to={CheckoutStepKey.PlanDetails} replace />,
+      element: <Navigate to={CheckoutStepKey.AcademicSelection} replace />,
     },
   ];
   const checkoutRoutes: RouteObject[] = [
@@ -103,28 +111,54 @@ export function getRoutes(queryClient: QueryClient) {
           <AppShell />
         </PageWrap>
       ),
-      children: [{
-        path: '/',
-        loader: getRouteLoader(makeRootLoader, queryClient),
-        element: (
-          <PageWrap>
-            <Suspense fallback={<RouterFallback />}>
-              <Root />
-            </Suspense>
-          </PageWrap>
-        ),
-        children: rootChildRoutes,
-        errorElement: (<ErrorPage message="Error Boundary" />),
-      },
-      {
-        path: '*',
-        element: (<ErrorPage message="Not Found" />),
-      }],
-    },
+      loader: getRouteLoader(makeRootLoader, queryClient),
+      children: [
+        {
+          path: 'essentials',
+          element: (
+            <PageWrap>
+              <Suspense fallback={<RouterFallback />}>
+                <Layout />
+              </Suspense>
+            </PageWrap>
+          ),
+          children: [
+            {
+              index: true,
+              element: <Navigate to={CheckoutStepKey.AcademicSelection} replace />,
+            },
+            {
+              path: EssentialsStepKey.AcademicSelection,
+              element: (
+                <PageWrap>
+                  <CheckoutPage />
+                </PageWrap>
+              ),
+            },
+          ],
+        },
+        {
+          path: 'essentials/*',
+          element: <ErrorPage message="Page Not Found" />,
+        },
+        {
+          path: '/',
+          loader: getRouteLoader(makeRootLoader, queryClient),
+          element: (
+            <PageWrap>
+              <Suspense fallback={<RouterFallback />}>
+                <Root />
+              </Suspense>
+            </PageWrap>
+          ),
+          children: checkoutRoutes,
+          errorElement: (<ErrorPage message="Error Boundary" />),
+        },
+        {
+          path: '*',
+          element: (<ErrorPage message="Not Found" />),
+        }], },
   ];
 
-  return {
-    routes,
-    rootChildRoutes,
-  };
+  return { routes };
 }

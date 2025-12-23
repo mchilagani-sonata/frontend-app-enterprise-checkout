@@ -4,7 +4,7 @@ import { redirect } from 'react-router-dom';
 
 import { queryBffContext } from '@/components/app/data/queries/queries';
 import { validateFormState } from '@/components/app/routes/loaders/utils';
-import { CheckoutPageRoute, DataStoreKey } from '@/constants/checkout';
+import { CheckoutPageRoute } from '@/constants/checkout';
 import { checkoutFormStore } from '@/hooks/useCheckoutFormStore';
 import { extractPriceId, getCheckoutPageDetails, getStepFromParams } from '@/utils/checkout';
 
@@ -18,6 +18,11 @@ async function planDetailsLoader(): Promise<Response | null> {
   return null;
 }
 
+async function AcademicSelectionLoader(): Promise<Response | null> {
+  // Plan Details page doesn't require authentication
+  return null;
+}
+
 /**
  * Route loader for Plan Details Login page.
  *
@@ -25,11 +30,9 @@ async function planDetailsLoader(): Promise<Response | null> {
  */
 async function planDetailsLoginLoader(): Promise<Response | null> {
   const authenticatedUser = getAuthenticatedUser();
-  const planDetailsMetadata = checkoutFormStore.getState().formData[DataStoreKey.PlanDetails];
-  const redirectToPlanDetails = !planDetailsMetadata.adminEmail;
-  if (redirectToPlanDetails || authenticatedUser) {
-    // Redirect to PlanDetails if: (1) adminEmail is missing, or (2) user is already authenticated.
-    return redirect(CheckoutPageRoute.PlanDetails);
+  if (authenticatedUser) {
+    // If the user is already authenticated, redirect to PlanDetails Page.
+    return redirect(CheckoutPageRoute.AcademicSelection);
   }
   return null;
 }
@@ -41,17 +44,10 @@ async function planDetailsLoginLoader(): Promise<Response | null> {
  */
 async function planDetailsRegisterLoader(): Promise<Response | null> {
   const authenticatedUser = getAuthenticatedUser();
-
-  const planDetailsMetadata = checkoutFormStore.getState().formData[DataStoreKey.PlanDetails];
-  const redirectToPlanDetails = !(
-    planDetailsMetadata.adminEmail && planDetailsMetadata.fullName && planDetailsMetadata.country
-  );
-
-  if (redirectToPlanDetails || authenticatedUser) {
-    // Redirect to PlanDetails if: (1) required metadata is missing, or (2) user is already authenticated.
-    return redirect(CheckoutPageRoute.PlanDetails);
+  if (authenticatedUser) {
+    // If the user is already authenticated, redirect to PlanDetails Page.
+    return redirect(CheckoutPageRoute.AcademicSelection);
   }
-
   return null;
 }
 
@@ -65,7 +61,7 @@ async function accountDetailsLoader(queryClient: QueryClient): Promise<Response 
   const authenticatedUser = getAuthenticatedUser();
   if (!authenticatedUser) {
     // If the user is NOT authenticated, redirect to PlanDetails Page.
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicSelection);
   }
 
   const contextMetadata: CheckoutContextResponse = await queryClient.ensureQueryData(
@@ -75,7 +71,7 @@ async function accountDetailsLoader(queryClient: QueryClient): Promise<Response 
 
   const stripePriceId = extractPriceId(pricing);
   if (!stripePriceId) {
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicSelection);
   }
 
   const {
@@ -103,7 +99,7 @@ async function billingDetailsLoader(queryClient: QueryClient): Promise<Response 
   const authenticatedUser = getAuthenticatedUser();
   if (!authenticatedUser) {
     // If the user is NOT authenticated, redirect to PlanDetails Page.
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicSelection);
   }
 
   const contextMetadata: CheckoutContextResponse = await queryClient.ensureQueryData(
@@ -113,7 +109,7 @@ async function billingDetailsLoader(queryClient: QueryClient): Promise<Response 
 
   const stripePriceId = extractPriceId(pricing);
   if (!stripePriceId) {
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicSelection);
   }
 
   const {
@@ -147,7 +143,7 @@ async function billingDetailsSuccessLoader(queryClient: QueryClient): Promise<Re
   const authenticatedUser = getAuthenticatedUser();
   if (!authenticatedUser) {
     // If the user is NOT authenticated, redirect to PlanDetails Page.
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicSelection);
   }
 
   const contextMetadata: CheckoutContextResponse = await queryClient.ensureQueryData(
@@ -159,7 +155,7 @@ async function billingDetailsSuccessLoader(queryClient: QueryClient): Promise<Re
   const checkoutIntentType = checkoutFormStore.getState().checkoutSessionStatus?.type;
 
   if (checkoutIntentType !== 'complete' && !checkoutIntent?.existingSuccessfulCheckoutIntent) {
-    return redirect(CheckoutPageRoute.PlanDetails);
+    return redirect(CheckoutPageRoute.AcademicSelection);
   }
 
   return null;
@@ -169,6 +165,7 @@ async function billingDetailsSuccessLoader(queryClient: QueryClient): Promise<Re
  * Page-specific route loaders mapped by checkout page
  */
 const PAGE_LOADERS: Record<CheckoutPage, (queryClient: QueryClient) => Promise<Response | null>> = {
+  AcademicSelection: AcademicSelectionLoader,
   PlanDetails: planDetailsLoader,
   PlanDetailsLogin: planDetailsLoginLoader,
   PlanDetailsRegister: planDetailsRegisterLoader,
@@ -190,7 +187,8 @@ const PAGE_LOADERS: Record<CheckoutPage, (queryClient: QueryClient) => Promise<R
 const makeCheckoutStepperLoader: MakeRouteLoaderFunctionWithQueryClient = function makeRootLoader(queryClient) {
   return async function checkoutStepperLoader({ params = {} }) {
     const { currentStep, currentSubstep } = getStepFromParams(params);
-    const pageDetails = getCheckoutPageDetails({ step: currentStep, substep: currentSubstep });
+    const resolvedStep = currentStep ?? 'AcademicSelection';
+    const pageDetails = getCheckoutPageDetails({ step: resolvedStep, substep: currentSubstep });
     if (!pageDetails) {
       // Invalid route, do nothing. 404 page should kick in automatically.
       return null;

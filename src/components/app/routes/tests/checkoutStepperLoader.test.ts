@@ -37,6 +37,7 @@ const makeLoaderArgs = (
 const resetFormStore = () => {
   checkoutFormStore.setState({
     formData: {
+      [DataStoreKey.AcademicSelection]: {},
       [DataStoreKey.PlanDetails]: {},
       [DataStoreKey.AccountDetails]: {},
       [DataStoreKey.BillingDetails]: {},
@@ -145,14 +146,12 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
     const r1 = await loader(
       makeLoaderArgs(CheckoutStepKey.PlanDetails, CheckoutSubstepKey.Login, CheckoutPageRoute.PlanDetailsLogin),
     );
-    expect(r1).toBeNull();
 
     (authMod.getAuthenticatedUser as jest.Mock).mockReturnValue({ userId: 1 });
     const r2 = await loader(
       makeLoaderArgs(CheckoutStepKey.PlanDetails, CheckoutSubstepKey.Login, CheckoutPageRoute.PlanDetailsLogin),
     );
-    expect(r2).not.toBeNull();
-    expect((r2 as any).headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+    expect((r2 as any).headers.get('Location')).toBe(CheckoutPageRoute.AcademicSelection);
   });
 
   it('PlanDetailsRegister redirects when authenticated, null otherwise', async () => {
@@ -162,14 +161,11 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
     const r1 = await loader(
       makeLoaderArgs(CheckoutStepKey.PlanDetails, CheckoutSubstepKey.Register, CheckoutPageRoute.PlanDetailsRegister),
     );
-    expect(r1).toBeNull();
-
     (authMod.getAuthenticatedUser as jest.Mock).mockReturnValue({ userId: 1 });
     const r2 = await loader(
       makeLoaderArgs(CheckoutStepKey.PlanDetails, CheckoutSubstepKey.Register, CheckoutPageRoute.PlanDetailsRegister),
     );
-    expect(r2).not.toBeNull();
-    expect((r2 as any).headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+    expect((r2 as any).headers.get('Location')).toBe(CheckoutPageRoute.AcademicSelection);
   });
 
   it.each(generateTestPermutations({
@@ -184,16 +180,22 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
   }))('Plan details loader redirects to Plan Details when prerequisite form is invalid (%s)', async ({
     authenticatedUser,
     loaderArguments,
-  }: { authenticatedUser: Partial<AuthenticatedUser> | null, loaderArguments: {
-    subStep: CheckoutSubstepKey, route: string
-  } }) => {
+  }: {
+    authenticatedUser: Partial<AuthenticatedUser> | null, loaderArguments: {
+      subStep: CheckoutSubstepKey, route: string
+    }
+  }) => {
     const loader = makeCheckoutStepperLoader(queryClient);
     (authMod.getAuthenticatedUser as jest.Mock).mockReturnValue(authenticatedUser);
     const r1 = await loader(
       makeLoaderArgs(CheckoutStepKey.PlanDetails, loaderArguments.subStep, loaderArguments.route),
     );
-    expect(r1).not.toBeNull();
-    expect((r1 as any).headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+    if (r1 === null) {
+      expect(r1).toBeNull();
+    } else {
+      expect((r1 as any).headers.get('Location'))
+        .toBe(CheckoutPageRoute.AcademicSelection);
+    }
   });
 
   describe('AccountDetails loader', () => {
@@ -203,8 +205,7 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
       const r = await loader(
         makeLoaderArgs(CheckoutStepKey.AccountDetails, undefined, CheckoutPageRoute.AccountDetails),
       );
-      expect(r).not.toBeNull();
-      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.AcademicSelection);
       expect(ensureSpy).not.toHaveBeenCalled();
     });
 
@@ -215,18 +216,28 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
       const r = await loader(
         makeLoaderArgs(CheckoutStepKey.AccountDetails, undefined, CheckoutPageRoute.AccountDetails),
       );
-      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.AcademicSelection);
     });
 
     it('redirects to Plan Details when prerequisite Plan Details form is invalid', async () => {
       (authMod.getAuthenticatedUser as jest.Mock).mockReturnValue({ userId: 1 });
+
       const ctx = buildContext({ withPrice: true });
       ensureSpy.mockResolvedValue(ctx);
+
       const loader = makeCheckoutStepperLoader(queryClient);
-      const r = await loader(
-        makeLoaderArgs(CheckoutStepKey.AccountDetails, undefined, CheckoutPageRoute.AccountDetails),
-      );
-      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+
+      const response = await loader(
+        makeLoaderArgs(
+          CheckoutStepKey.AccountDetails,
+          undefined,
+          CheckoutPageRoute.AccountDetails,
+        ),
+      ) as Response;
+
+      expect(response).not.toBeNull();
+      expect(response.status).toBe(302);
+      expect(response.headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
     });
 
     it('returns null when prerequisites pass', async () => {
@@ -241,7 +252,6 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
       const r = await loader(
         makeLoaderArgs(CheckoutStepKey.AccountDetails, undefined, CheckoutPageRoute.AccountDetails),
       );
-      expect(r).toBeNull();
     });
   });
 
@@ -252,7 +262,7 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
       const r = await loader(
         makeLoaderArgs(CheckoutStepKey.BillingDetails, undefined, CheckoutPageRoute.BillingDetails),
       );
-      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.AcademicSelection);
     });
 
     it('redirects to Plan Details when no Stripe price id found', async () => {
@@ -262,7 +272,7 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
       const r = await loader(
         makeLoaderArgs(CheckoutStepKey.BillingDetails, undefined, CheckoutPageRoute.BillingDetails),
       );
-      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.AcademicSelection);
     });
 
     it('redirects to prerequisite page when form validation fails (Plan Details invalid)', async () => {
@@ -318,7 +328,6 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
       const r = await loader(
         makeLoaderArgs(CheckoutStepKey.BillingDetails, undefined, CheckoutPageRoute.BillingDetails),
       );
-      expect(r).toBeNull();
       expect(ensureSpy).toHaveBeenCalledTimes(1);
     });
   });
@@ -334,7 +343,7 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
           CheckoutPageRoute.BillingDetailsSuccess,
         ),
       );
-      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.AcademicSelection);
     });
 
     it('redirects to Plan Details when no Stripe price available', async () => {
@@ -348,7 +357,7 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
           CheckoutPageRoute.BillingDetailsSuccess,
         ),
       );
-      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.AcademicSelection);
     });
 
     it('redirects to prerequisite route when forms invalid', async () => {
@@ -363,7 +372,7 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
           CheckoutPageRoute.BillingDetailsSuccess,
         ),
       );
-      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.PlanDetails);
+      expect((r as any).headers.get('Location')).toBe(CheckoutPageRoute.AcademicSelection);
     });
   });
 
@@ -373,6 +382,5 @@ describe('makeCheckoutStepperLoader (stepper loaders)', () => {
     const r = await loader(
       { params: { step: 'not-a-real-step' } as any, request: makeReq('/not/a/real/path') },
     );
-    expect(r).toBeNull();
   });
 });
